@@ -23,6 +23,7 @@ import {
   SlashCommandProvider
 } from './slash-commands';
 import { StopButton } from './stop-button';
+import cellActionsPlugin from './cell-actions';
 
 // Public persona session data types (event payloads).
 export * from './awareness';
@@ -159,5 +160,6 @@ export default [
   sessionRegistryPlugin,
   slashCommandPlugin,
   controlRegistryPlugin,
-  toolbarPlugin
+  toolbarPlugin,
+  cellActionsPlugin
 ];

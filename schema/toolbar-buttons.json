@@ -1,0 +1,25 @@
+{
+  "title": "@jupyter-ai/persona-manager",
+  "description": "Notebook cell actions provided by Jupyter AI.",
+  "type": "object",
+  "properties": {
+    "toolbar": {
+      "type": "array",
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "jupyter.lab.toolbars": {
+    "Cell": [
+      {
+        "name": "jupyter-ai-explain-cell",
+        "command": "toolbar-button:jupyter-ai-explain-cell"
+      },
+      {
+        "name": "jupyter-ai-debug-cell",
+        "command": "toolbar-button:jupyter-ai-debug-cell"
+      }
+    ],
+    "Notebook": []
+  }
+}

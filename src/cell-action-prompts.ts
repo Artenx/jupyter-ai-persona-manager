@@ -1,0 +1,49 @@
+/** Prompt builders for the Jupyter AI notebook cell actions. */
+
+export type CellAction = 'explain' | 'debug';
+
+/**
+ * Select a Markdown fence longer than any backtick run in the cell source, so
+ * a string literal containing triple backticks cannot terminate the code block.
+ */
+function codeFence(source: string): string {
+  const runs = source.match(/`+/g) ?? [];
+  const longestRun = runs.reduce(
+    (longest, run) => Math.max(longest, run.length),
+    0
+  );
+  return '`'.repeat(Math.max(3, longestRun + 1));
+}
+
+export function buildCellActionPrompt(
+  action: CellAction,
+  source: string,
+  errorText: string | null
+): string {
+  const fence = codeFence(source);
+  const codeBlock = `${fence}python\n${source}\n${fence}`;
+
+  if (action === 'explain') {
+    return [
+      '请解释下面 Jupyter Notebook 当前代码单元格中的 Python 代码。',
+      '用中文概述代码目的、主要步骤、关键变量以及输入和输出；不必逐行翻译。',
+      '指出重要假设或潜在风险。不要执行代码，也不要修改任何单元格。',
+      '',
+      '当前单元格代码：',
+      codeBlock
+    ].join('\n');
+  }
+
+  return [
+    '请排查下面 Jupyter Notebook 当前代码单元格中的问题。',
+    '结合错误追踪定位根因，说明原因，并给出尽量小的修复方案和可直接替换当前单元格的完整代码。',
+    '不要执行代码或直接修改 notebook；只提供分析和建议。',
+    '',
+    '当前单元格代码：',
+    codeBlock,
+    '',
+    '最近一次执行错误：',
+    errorText ??
+      '当前单元格没有保存的错误输出。请先静态检查潜在问题，并说明还需要哪些信息。'
+  ].join('\n');
+}

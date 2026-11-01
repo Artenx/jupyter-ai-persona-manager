@@ -60,8 +60,11 @@
     "dependencies": {
         "@jupyter/chat": "^0.25.0-alpha.5",
         "@jupyterlab/application": "^4.0.0",
+        "@jupyterlab/cells": "^4.0.0",
         "@jupyterlab/coreutils": "^6.0.0",
-        "@jupyterlab/services": "^7.0.0"
+        "@jupyterlab/notebook": "^4.0.0",
+        "@jupyterlab/services": "^7.0.0",
+        "@jupyterlab/ui-components": "^4.0.0"
     },
     "devDependencies": {
         "@jupyterlab/builder": "^4.0.0",
@@ -115,6 +118,7 @@
             }
         },
         "extension": true,
+        "schemaDir": "schema",
         "outputDir": "jupyter_ai_persona_manager/labextension",
         "disabledExtensions": [
             "jupyterlab-chat-extension:inputToolbarFactory"

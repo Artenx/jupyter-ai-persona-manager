@@ -16,6 +16,18 @@ const EXPLAIN_CELL_COMMAND = 'toolbar-button:jupyter-ai-explain-cell';
 const DEBUG_CELL_COMMAND = 'toolbar-button:jupyter-ai-debug-cell';
 const CELL_ACTION_CHAT_NAME = 'Jupyter AI Cell Assistant';
 
+/**
+ * One persistent chat per notebook, so cell-action messages do not accumulate
+ * in a single shared file. Falls back to the shared chat when the notebook
+ * path is unavailable (e.g. never-saved notebook without a session path).
+ */
+function cellAssistantChatName(notebookTracker: INotebookTracker): string {
+  const panel = notebookTracker.currentWidget;
+  const path = panel?.sessionContext.path ?? '';
+  const base = path.split('/').pop()?.replace(/\.ipynb$/, '') ?? '';
+  return base ? `${base} - Cell Assistant` : CELL_ACTION_CHAT_NAME;
+}
+
 const explainCellIcon = new LabIcon({
   name: '@jupyter-ai/persona-manager:explain-cell',
   svgstr: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -84,7 +96,7 @@ async function sendCellAction(
   // Keep cell-action requests together in one persistent chat, matching Mito's
   // reusable AI chat panel rather than creating a new chat for every click.
   await app.commands.execute(OPEN_CHAT_WITH_MESSAGE, {
-    name: CELL_ACTION_CHAT_NAME,
+    name: cellAssistantChatName(notebookTracker),
     inSidePanel: true,
     input,
     autoSend: true

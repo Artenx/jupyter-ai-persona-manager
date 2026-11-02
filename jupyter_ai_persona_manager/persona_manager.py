@@ -464,11 +464,23 @@ class PersonaManager(LoggingConfigurable):
         onto each outgoing message. The message is delivered to exactly that
         persona by calling its `process_message()` method.
 
-        A message is not routed anywhere when it names no target persona or names
-        one that isn't installed in this chat.
+        A message that names a persona which isn't installed in this chat is
+        not routed anywhere. A message naming NO persona at all falls back to
+        the chat's default persona: auto-sent messages (e.g. the cell
+        Explain/Debug actions) can reach the server before the client's persona
+        picker has synced, and dropping them made the first message of a fresh
+        chat silently unanswered.
         """
         persona_id = (message.metadata or {}).get(self.TO_PERSONA_METADATA_KEY)
         persona = self.personas.get(persona_id) if persona_id else None
+        if persona is None and not persona_id:
+            persona = self.default_persona
+            if persona is not None:
+                self.log.info(
+                    "Message names no persona; routing to default persona '%s' in chat '%s'.",
+                    persona.name,
+                    self.chat_path,
+                )
         self.log.debug(
             "Routing message to persona: %s", persona.name if persona else None
         )

@@ -6,6 +6,15 @@ export type CellAction = 'explain' | 'debug';
  * Select a Markdown fence longer than any backtick run in the cell source, so
  * a string literal containing triple backticks cannot terminate the code block.
  */
+/**
+ * Strip ANSI escape sequences (SGR color codes and other CSI sequences) that
+ * Jupyter embeds in stored error tracebacks; the chat renders message bodies
+ * as Markdown, where raw escape codes would show up as visible garbage.
+ */
+function stripAnsi(text: string): string {
+  return text.replace(/\u001B\[[0-9;:?]*[A-Za-z]/g, '');
+}
+
 function codeFence(source: string): string {
   const runs = source.match(/`+/g) ?? [];
   const longestRun = runs.reduce(
@@ -34,6 +43,9 @@ export function buildCellActionPrompt(
     ].join('\n');
   }
 
+  const errorBlock = errorText
+    ? `${codeFence(errorText)}\n${stripAnsi(errorText)}\n${codeFence(errorText)}`
+    : '当前单元格没有保存的错误输出。请先静态检查潜在问题，并说明还需要哪些信息。';
   return [
     '请排查下面 Jupyter Notebook 当前代码单元格中的问题。',
     '结合错误追踪定位根因，说明原因，并给出尽量小的修复方案和可直接替换当前单元格的完整代码。',
@@ -43,7 +55,6 @@ export function buildCellActionPrompt(
     codeBlock,
     '',
     '最近一次执行错误：',
-    errorText ??
-      '当前单元格没有保存的错误输出。请先静态检查潜在问题，并说明还需要哪些信息。'
+    errorBlock
   ].join('\n');
 }

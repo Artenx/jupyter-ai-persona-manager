@@ -65,7 +65,11 @@ function latestErrorText(cell: ICodeCellModel): string | null {
     : typeof error.traceback === 'string'
       ? error.traceback
       : '';
-  return [summary, traceback].filter(Boolean).join('\n');
+  // Stored tracebacks carry ANSI color codes; strip them so the text is
+  // clean regardless of where it is rendered.
+  const cleanTraceback = traceback.replace(/\u001B\[[0-9;:?]*[A-Za-z]/g, '');
+  return [summary, cleanTraceback].filter(Boolean).join('\n');
+
 }
 
 async function sendCellAction(

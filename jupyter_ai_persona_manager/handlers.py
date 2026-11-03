@@ -198,6 +198,16 @@ class CancelHandler(JupyterHandler):
                     f"Failed to cancel response for persona '{persona.id}'",
                     exc_info=True,
                 )
+        if cancelled:
+            self.log.info(
+                f"Cancel request for chat '{chat_id}': stopped {cancelled}"
+            )
+        else:
+            self.log.info(
+                f"Cancel request for chat '{chat_id}': no processing personas "
+                f"to stop (registered: "
+                f"{[p.id for p in persona_manager.personas.values()]})"
+            )
         self.finish(json.dumps({"status": "cancelled", "cancelled": cancelled}))
 
 

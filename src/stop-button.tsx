@@ -66,6 +66,26 @@ export function StopButton(
     };
   }, [sessionRegistry, chatId]);
 
+  // Also enable while a persona is actively writing: awareness writers reach
+  // the client over the chat WebSocket immediately, while `persona_state`
+  // processing events travel through the events API and can lag by a moment —
+  // a click in that gap used to be silently swallowed by the disabled button.
+  // A click while nothing is processing is harmless: the cancel endpoint
+  // skips idle personas.
+  const [botWriting, setBotWriting] = useState(false);
+  useEffect(() => {
+    if (!chatModel) {
+      setBotWriting(false);
+      return;
+    }
+    const sync = () => setBotWriting(chatModel.writers.some(w => w.user.bot));
+    sync();
+    chatModel.writersChanged?.connect(sync);
+    return () => {
+      chatModel.writersChanged?.disconnect(sync);
+    };
+  }, [chatModel]);
+
   async function handleStop() {
     if (!chatId) {
       return;
@@ -83,7 +103,7 @@ export function StopButton(
     <TooltippedIconButton
       onClick={handleStop}
       tooltip={tooltip}
-      disabled={disabled || inFlight}
+      disabled={(disabled && !botWriting) || inFlight}
       buttonProps={{
         title: tooltip,
         className: STOP_BUTTON_CLASS

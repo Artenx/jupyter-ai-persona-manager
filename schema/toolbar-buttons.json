@@ -18,6 +18,10 @@
       {
         "name": "jupyter-ai-debug-cell",
         "command": "toolbar-button:jupyter-ai-debug-cell"
+      },
+      {
+        "name": "jupyter-ai-comment-cell",
+        "command": "toolbar-button:jupyter-ai-comment-cell"
       }
     ],
     "Notebook": []

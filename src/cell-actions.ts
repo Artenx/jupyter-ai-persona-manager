@@ -14,6 +14,7 @@ import type { CellAction } from './cell-action-prompts';
 const OPEN_CHAT_WITH_MESSAGE = 'jupyterlab-chat:openWithMessage';
 const EXPLAIN_CELL_COMMAND = 'toolbar-button:jupyter-ai-explain-cell';
 const DEBUG_CELL_COMMAND = 'toolbar-button:jupyter-ai-debug-cell';
+const COMMENT_CELL_COMMAND = 'toolbar-button:jupyter-ai-comment-cell';
 const CELL_ACTION_CHAT_NAME = 'Jupyter AI Cell Assistant';
 
 /**
@@ -39,6 +40,13 @@ const debugCellIcon = new LabIcon({
   name: '@jupyter-ai/persona-manager:debug-cell',
   svgstr: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <path fill="currentColor" d="M20 8h-2.81a5.98 5.98 0 0 0-1.46-1.9l1.45-1.45L15.77 3l-1.83 1.83a5.91 5.91 0 0 0-3.88 0L8.23 3 6.82 4.41l1.45 1.45A5.98 5.98 0 0 0 6.81 8H4v2h2.09a6.5 6.5 0 0 0-.09 1v1H4v2h2v1c0 .34.03.67.09 1H4v2h2.81A6 6 0 0 0 12 21a6 6 0 0 0 5.19-3H20v-2h-2.09c.06-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.03-.67-.09-1H20V8Zm-6 8h-4v-2h4v2Zm0-4h-4v-2h4v2Z"/>
+  </svg>`
+});
+
+const commentCellIcon = new LabIcon({
+  name: '@jupyter-ai/persona-manager:comment-cell',
+  svgstr: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2Zm0 14H5.17L4 17.17V4h16v12ZM7 7h10v2H7zm0 4h10v2H7z"/>
   </svg>`
 });
 
@@ -109,7 +117,7 @@ async function sendCellAction(
 
 const cellActionsPlugin: JupyterFrontEndPlugin<void> = {
   id: '@jupyter-ai/persona-manager:toolbar-buttons',
-  description: 'Explain or debug the active notebook cell with Jupyter AI.',
+  description: 'Explain, debug, or comment the active notebook cell with Jupyter AI.',
   autoStart: true,
   requires: [INotebookTracker, ISettingRegistry],
   activate: (
@@ -125,6 +133,7 @@ const cellActionsPlugin: JupyterFrontEndPlugin<void> = {
     const refreshToolbarButtons = () => {
       app.commands.notifyCommandChanged(EXPLAIN_CELL_COMMAND);
       app.commands.notifyCommandChanged(DEBUG_CELL_COMMAND);
+      app.commands.notifyCommandChanged(COMMENT_CELL_COMMAND);
     };
     notebookTracker.activeCellChanged.connect(refreshToolbarButtons);
     notebookTracker.currentChanged.connect(refreshToolbarButtons);
@@ -143,10 +152,17 @@ const cellActionsPlugin: JupyterFrontEndPlugin<void> = {
       isVisible: hasActiveCodeCell
     });
 
+    app.commands.addCommand(COMMENT_CELL_COMMAND, {
+      caption: 'Add comments to this cell with Jupyter AI',
+      icon: commentCellIcon,
+      execute: () => sendCellAction(app, notebookTracker, 'comment'),
+      isVisible: hasActiveCodeCell
+    });
+
     // Fetch this plugin's schema into the frontend settings registry. The
     // notebook toolbar factory aggregates `jupyter.lab.toolbars.Cell`
     // contributions from plugins present in the registry; without this load
-    // the Explain/Debug items never reach the cell toolbar (the bundle and
+    // the cell action items never reach the cell toolbar (the bundle and
     // schema ship fine, they are just never consulted).
     void settingRegistry
       .load(cellActionsPlugin.id)

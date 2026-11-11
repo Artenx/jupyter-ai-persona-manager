@@ -25,6 +25,17 @@ describe('buildCellActionPrompt', () => {
     expect(prompt).toContain('可直接替换当前单元格');
   });
 
+  it('requests useful comments while preserving executable code', () => {
+    const source = 'total = price * count\nprint(total)';
+    const prompt = buildCellActionPrompt('comment', source, null);
+
+    expect(prompt).toContain('补充必要、准确、易懂的中文注释');
+    expect(prompt).toContain('保留代码的行为、结构和现有注释');
+    expect(prompt).toContain('仅返回包含注释后完整单元格代码');
+    expect(prompt).toContain(`\`\`\`python\n${source}\n\`\`\``);
+    expect(prompt).not.toContain('最近一次执行错误');
+  });
+
   it('uses a longer fence when the code contains triple backticks', () => {
     const source = 'markdown = "```python"';
     const prompt = buildCellActionPrompt('explain', source, null);
